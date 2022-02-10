@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <title>aiohttp and jinja test</title>
+</head>
+<body>
+    <script>
+    function disableButton(btnId) {
+        var btn = document.getElementById(btnId);
+        btn.disabled = true;
+    }
+    function enableButton(btnId) {
+        var btn = document.getElementById(btnId);
+        btn.disabled = false;
+    }
+    async function postData(url = '', data = {}) {
+    // Default options are marked with *
+    const response = await fetch(url, {
+        method: 'POST', // *GET, POST, PUT, DELETE, etc.
+        //mode: 'cors', // no-cors, *cors, same-origin
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: 'same-origin', // include, *same-origin, omit
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        redirect: 'follow', // manual, *follow, error
+        referrerPolicy: 'no-referrer', // no-referrer, *client
+        body: JSON.stringify(data) // body data type must match "Content-Type" header
+    });
+    return await response.json(); // parses JSON response into native JavaScript objects
+    }
+
+    function disableAllBtn(){
+        disableButton('btnStart');
+        disableButton('btnStop');
+        disableButton('btnRestart');
+    }
+
+    async function submitSave() {
+        disableButton('btnSaveStatus');
+        var val = document.getElementById('customSwitch1');
+
+        postData('/save', { value: val.checked })
+            .then((data) => {
+                console.log(data); // JSON data parsed by `response.json()` call
+            });      
+        enableButton('btnSaveStatus');
+
+    }
+
+    async function submitStart() {
+        disableAllBtn();
+        postData('/start', { answer: 42 })
+            .then((data) => {
+                console.log(data); // JSON data parsed by `response.json()` call
+            });      
+    }
+
+    async function submitStop() {
+        disableAllBtn();
+        postData('/stop', { answer: 42 })
+            .then((data) => {
+                console.log(data); // JSON data parsed by `response.json()` call
+            });      
+    }
+
+    async function submitReStart() {
+        disableAllBtn();
+        postData('/restart', { answer: 42 })
+            .then((data) => {
+                console.log(data); // JSON data parsed by `response.json()` call
+            });      
+    }
+
+    async function getStatus() {
+        postData('/status', { answer: 42 })
+            .then((data) => {
+                console.log(data); // JSON data parsed by `response.json()` call
+                document.getElementById("content").innerHTML = data.status;
+                if (data.enabled==true){
+                    var val = document.getElementById('customSwitch1');
+                    val.checked = true;
+
+                    if (data.status=='inactive'){
+                        enableButton('btnStart');
+                        disableButton('btnRestart');
+                    }
+                    if (data.status=='active'){
+                        enableButton('btnStop');
+                        enableButton('btnRestart');
+                    }
+                }
+                else {
+                    disableAllBtn();
+                    var val = document.getElementById('customSwitch1');
+                    val.checked = false;
+                }
+
+            });      
+    }
+    async function update() {
+        await getStatus();
+        setTimeout(update, 5000);
+    }
+    update();
+
+    </script>
+
+    <div class="container">
+    <h1>
+    <div style="white-space:nowrap; display:inline" id="title">Service {{ name }}. Status: </div> 
+    <div style="white-space:nowrap; display:inline" id="content">{{ status }}</div>
+    </h1>
+    </div>
+
+    <div style="height: 20px; margin: 20px 20px 20px 40px;">
+    <input type="button" class="btn btn-outline-primary btn-sm" id="btnStart" value="Start" onclick="submitStart()" disabled>
+    <input type="button" class="btn btn-outline-primary btn-sm" id="btnStop" value="Stop" onclick="submitStop()" disabled>
+    <input type="button" class="btn btn-outline-primary btn-sm" id="btnRestart" value="ReStart" onclick="submitReStart()" disabled>
+    </div>
+
+    <div style="height: 20px; margin: 20px 20px 20px 40px;">
+    <h4>Enable or disable service</h4>
+    <div class="custom-control custom-switch">
+    <input type="checkbox" class="custom-control-input" id="customSwitch1" role="switch" checked>
+    <label class="custom-control-label" for="customSwitch1">Toggle the switch and press "Save"</label>
+    </div>
+    <input type="button" class="btn btn-outline-primary btn-sm" id="btnSaveStatus" value="Save" onclick="submitSave()">
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,8 @@
+/var/log/app/app.log {
+    daily
+    copytruncate
+    create
+    rotate 10
+    missingok
+    compress
+}
